@@ -75,9 +75,15 @@
         //loader.load( './demo-data/femur.stl' );
   
 
+        var testRandVox = new VoxelMesh(5,15);
+        threeViewer.addToScene( testRandVox );
+
+        //var testCubeVox = new VoxelMesh(5,15, cubeGenerator);
         var testCubeVox = new VoxelMesh(5,15);
-        threeViewer.addToScene( testCubeVox );
-        console.log("testCubeVox",testCubeVox)
+        //threeViewer.addToScene( testCubeVox );
+        //testCubeVox.position.x = 5;
+
+        testRandVox.subtract( testCubeVox ); 
 
       },500);
 
