@@ -24,6 +24,8 @@
 
         <three-js-object helpersRoot>
           <three-axis-helper > </three-axis-helper>
+          <three-js-light x="50" y="30" z="200"></three-js-light>
+          <three-js-light kind="spot" x="-150" y="350" rx="90" shadow></three-js-light>
         </three-js-object>
       </three-js-scene>
    </three-js>
@@ -33,10 +35,16 @@
 
       //HACK !
       var currentUrl = window.location.origin;
+
       var script = document.createElement('script');
       script.src = currentUrl+"/vendor/stl-loader.js";
       document.getElementsByTagName('head')[0].appendChild(script);
 
+      var script = document.createElement('script');
+      script.src = currentUrl+"/src/voxel.js";
+      document.getElementsByTagName('head')[0].appendChild(script);
+
+  
 	    var threeViewer = document.querySelector('three-js');
 
       setTimeout(function() {
@@ -64,9 +72,14 @@
               mesh.receiveShadow = true;
               threeViewer.addToScene( mesh );
         });
-        loader.load( './demo-data/femur.stl' );
+        //loader.load( './demo-data/femur.stl' );
   
-      },100);
+
+        var testCubeVox = new VoxelMesh(5,15);
+        threeViewer.addToScene( testCubeVox );
+        console.log("testCubeVox",testCubeVox)
+
+      },500);
 
       //threeViewer.toggleScene("aiaiai");
 
