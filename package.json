@@ -1,0 +1,14 @@
+{
+  "name": "usco-voxel-exp",
+  "main": "index.html",
+  "description": "three.js polymer custom elements",
+  "author": "Mark kaosat-dev Moissette",
+  "license": "AGPL",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "http-server": "~0.5.5"
+  }
+}
+
+

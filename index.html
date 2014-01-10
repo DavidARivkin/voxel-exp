@@ -1,0 +1,88 @@
+<html>
+  <head>
+    <title>Three.js polymer.js viewer example</title>
+      <script src="components/platform/platform.js"></script>
+      <link rel="import" href="components/polymer/polymer.html">
+      <link rel="import" href="components/polymer-three-js/three-js.html">
+
+
+      <style>
+         html, body, three-js {
+          left:0px;top:0px;width:100%;height:100%;background-color:#ffffff;      
+    }
+      </style>
+  </head>
+<body>
+  <three-js postProcess>
+      <three-stats id="stats" show></three-stats>
+      <three-js-combinedCamera tracking x="100" y="100" z="200" orientation="top" cameraUp=[0,0,1] ></three-js-combinedCamera>
+      <three-js-orbitControls cameraUp=[0,0,1] > </three-js-orbitControls>
+
+      <three-js-scene name="caramba" active>
+        <three-js-object hierarchyRoot>
+        </three-js-object>
+
+        <three-js-object helpersRoot>
+          <three-axis-helper > </three-axis-helper>
+        </three-js-object>
+      </three-js-scene>
+   </three-js>
+
+  <script>
+    window.addEventListener('WebComponentsReady', function() {
+
+      //HACK !
+      var currentUrl = window.location.origin;
+      var script = document.createElement('script');
+      script.src = currentUrl+"/vendor/stl-loader.js";
+      document.getElementsByTagName('head')[0].appendChild(script);
+
+	    var threeViewer = document.querySelector('three-js');
+
+      setTimeout(function() {
+          var loader = new THREE.STLLoader();
+          console.log("here");
+
+          loader.addEventListener( 'load', function ( event ) {
+              var material = new THREE.MeshPhongMaterial( { ambient: 0xddddcc, color: 0xddddcc, specular: 0x111111, shininess: 200,wrapAround:true,shading: THREE.FlatShading } );
+              var material = new THREE.MeshPhongMaterial( { color: 0x00a9ff, specular: 0xffffff, shininess: 10, shading: THREE.FlatShading} );
+
+              var geometry = event.content;
+              /*geometry.applyMatrix( new THREE.Matrix4().makeScale( 200, 200, 200 ) );
+
+                                                        geometry.computeVertexNormals();
+                                                        geometry.computeFaceNormals();
+                                                        geometry.computeBoundingBox();
+                                      geometry.computeCentroids();
+                                      geometry.computeBoundingSphere();*/
+
+              var mesh = new THREE.Mesh( geometry, material );
+              mesh.name = "test";
+              //mesh.position.set( 0, - 0.37, - 0.6 );
+              //mesh.rotation.set( - Math.PI / 2, 0, 0 );
+              mesh.castShadow = true;
+              mesh.receiveShadow = true;
+              threeViewer.addToScene( mesh );
+        });
+        loader.load( './demo-data/femur.stl' );
+  
+      },100);
+
+      //threeViewer.toggleScene("aiaiai");
+
+      //clearing a scene
+      //threeViewer.clearScene();
+
+      //add things back
+      //threeViewer.addToScene(cube);
+      //threeViewer.addToScene(sphere);
+      //remove cube only
+      //threeViewer.removeFromScene(cube);
+
+    });
+  </script>  
+
+<!--<script src="vendor/stl-loader.js"></script>-->
+
+</body>
+</html>
