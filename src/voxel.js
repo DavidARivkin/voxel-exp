@@ -11,14 +11,22 @@ function randomGenerator(x,y,z)
 }
 
 //meshers
-function stupidMesher(grid)
+function stupidMesher(grid, bla, baseSize)
 {
-  /*
+  var baseSize = this.baseSize = baseSize || 15;
   var gridSize = grid.length;
+  var divisions = Math.pow(gridSize, 1/3);
 
   for(var i=0; i<gridSize; i++)
   {
-    var curAtCoord = grid[i];
+    var coord = grid.coordFromIndex(i);
+    var x = coord[0];
+    var y = coord[1];
+    var z = coord[2];
+
+    var voxData = grid.getFromIndex(i);
+    var filled = voxData.filled;
+    console.log("x,y,z",x,y,z,"filled",voxData)
 
     if(filled)
     {
@@ -28,24 +36,32 @@ function stupidMesher(grid)
       var cube = THREE.SceneUtils.createMultiMaterialObject( cubeGeometry, [material,material2]);
 
       //generator needed
-      if(filled) this.add(cube);
+      if(filled) bla.add(cube);
 
       var offset = (baseSize*(divisions-1))/2;
       cube.position.set(x*baseSize-offset, y*baseSize-offset, z*baseSize-offset);
     }
-  }*/
-
+  }
 }
 
-function VoxelMesh(divisions, baseSize, generator)
+function VoxelMesh(grid, mesher)
+{
+  var mesher = mesher || stupidMesher;
+  THREE.Object3D.call( this );
+  
+  mesher(grid,this);
+}
+
+VoxelMesh.prototype = Object.create( THREE.Object3D.prototype );
+
+
+function VoxelGrid(divisions, generator)
 {
   var divisions = this.divisions = divisions || 3;
-  var baseSize = this.baseSize = baseSize || 25;
   var generator = this.generator = generator || randomGenerator;
 
-  THREE.Object3D.call( this );
-
   var gridSize = Math.pow(divisions,3);
+  this.length = gridSize;
   var grid =new Array(gridSize);
 
   var lineSize = divisions;
@@ -56,21 +72,7 @@ function VoxelMesh(divisions, baseSize, generator)
     //console.log("x",x,"y",y,"z",z)
     var filled = generator(x,y,z);
     var index= x + divisions * (y + divisions * z);
-    grid[index] = {filled:filled, mesh:cube};
-
-    if(filled)
-    {
-      var cubeGeometry = new THREE.CubeGeometry( baseSize, baseSize, baseSize ); 
-      var material = new THREE.MeshLambertMaterial( {color: 0x0088ff} ); 
-      var material2 = new THREE.MeshLambertMaterial( {color: 0xffffff,wireframe:true} ); 
-      var cube = THREE.SceneUtils.createMultiMaterialObject( cubeGeometry, [material,material2]);
-
-      //generator needed
-      if(filled) this.add(cube);
-
-      var offset = (baseSize*(divisions-1))/2;
-      cube.position.set(x*baseSize-offset, y*baseSize-offset, z*baseSize-offset);
-    }
+    grid[index] = {filled:filled};
 
     x++;
     if(x==lineSize){x = 0; y++;}
@@ -78,25 +80,33 @@ function VoxelMesh(divisions, baseSize, generator)
     if(z==lineSize)z = 0;
   }
   //indexed access of 3d data in 1d array : x + WIDTH * (y + DEPTH * z)
-
- console.log("grid",grid)
   this.grid = grid;
 }
-VoxelMesh.prototype = Object.create( THREE.Object3D.prototype );
 
-VoxelMesh.prototype.getAt = function(x,y,z)
+VoxelGrid.prototype.getAt = function(x,y,z)
 {
     var index= x + this.divisions * (y + this.divisions * z);
     this.grid[index];
 }
 
-VoxelMesh.prototype.coordFromLinearIndex = function(i)
+VoxelGrid.prototype.getFromIndex = function(index)
 {
-    var index= x + this.divisions * (y + this.divisions * z);
-    -x = -index + this.divisions * (y + this.divisions * z);
+    return this.grid[index];
 }
 
-VoxelMesh.prototype.subtract = function( other )
+VoxelGrid.prototype.coordFromIndex = function(index)
+{
+    var divisions = this.divisions;
+
+    var x = Math.floor( index % divisions );
+    var y = Math.floor( (index/divisions) % divisions );
+    var z = Math.floor( index/ (divisions * divisions) );
+
+    console.log("x",x,"y",y,"z",z)
+    return [x,y,z]
+}
+
+VoxelGrid.prototype.subtract = function( other )
 {
   var grid = this.grid;
   var divisions = this.divisions;
@@ -118,7 +128,7 @@ VoxelMesh.prototype.subtract = function( other )
   console.log("result grid",grid)
 }
 
-VoxelMesh.prototype.translate = function( x )
+VoxelGrid.prototype.translate = function( x )
 {
 
 }

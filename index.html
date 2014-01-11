@@ -75,11 +75,11 @@
         //loader.load( './demo-data/femur.stl' );
   
      
-        var testRandVox = new VoxelMesh(5,15);
-        threeViewer.addToScene( testRandVox );
+        var testRandVox = new VoxelGrid(6);
+        var mesh = new VoxelMesh(testRandVox);
+        
+        threeViewer.addToScene( mesh );
 
-        //var testCubeVox = new VoxelMesh(5,15, cubeGenerator);
-        var testCubeVox = new VoxelMesh(5,15);
         //threeViewer.addToScene( testCubeVox );
         //testCubeVox.position.x = 5;
 
@@ -97,6 +97,8 @@
       //threeViewer.addToScene(sphere);
       //remove cube only
       //threeViewer.removeFromScene(cube);
+
+      //THREE.GeometryUtils.merge(geometry, otherGeometry);
 
     });
   </script>  
