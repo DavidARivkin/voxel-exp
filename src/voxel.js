@@ -1,8 +1,25 @@
 
 //generators
+
 function cubeGenerator(x,y,z, size)
 {
   return true;
+}
+
+function sphereGenerator(x,y,z, res)
+{
+  //spherical implicit surface  x2+y2+z2=1
+  var dim = res;
+  var x = dim/2-x;
+  var y = dim/2-y;
+  var z = dim/2-z;
+
+  return x*x+y*y+z*z <= dim/2*dim/2 ? 1 : 0;
+}
+
+function someImplicit(x,y,z, res)
+{
+  //z*z = Math.sin(z – x*x*y*y), –1 ≤ x ≤ 1, –1 ≤ y ≤ 1, 0 ≤ z ≤ 1
 }
 
 function randomGenerator(x,y,z)
@@ -17,6 +34,8 @@ function stupidMesher(grid, bla, baseSize)
   var gridSize = grid.length;
   var divisions = Math.pow(gridSize, 1/3);
 
+  var geometry = new THREE.CubeGeometry( 1, 1, 1 ); 
+
   for(var i=0; i<gridSize; i++)
   {
     var coord = grid.coordFromIndex(i);
@@ -26,25 +45,42 @@ function stupidMesher(grid, bla, baseSize)
 
     var voxData = grid.getFromIndex(i);
     var filled = voxData.filled;
-    console.log("x,y,z",x,y,z,"filled",voxData)
+    //console.log("x,y,z",x,y,z,"filled",voxData)
 
     if(filled)
     {
+
+      /*
       var cubeGeometry = new THREE.CubeGeometry( baseSize, baseSize, baseSize ); 
+
+      //THREE.GeometryUtils.merge(geometry, cubeGeometry);
+
       var material = new THREE.MeshLambertMaterial( {color: 0x0088ff} ); 
       var material2 = new THREE.MeshLambertMaterial( {color: 0xffffff,wireframe:true} ); 
       var cube = THREE.SceneUtils.createMultiMaterialObject( cubeGeometry, [material,material2]);
 
       //generator needed
-      if(filled) bla.add(cube);
+      if(filled) bla.add(cube)
 
       var offset = (baseSize*(divisions-1))/2;
-      cube.position.set(x*baseSize-offset, y*baseSize-offset, z*baseSize-offset);
+      cube.position.set(x*baseSize-offset, y*baseSize-offset, z*baseSize-offset);*/
+
+      var cubeGeometry = new THREE.CubeGeometry( baseSize, baseSize, baseSize ); 
+
+      var offset = (baseSize*(divisions-1))/2;
+      cubeGeometry.applyMatrix( new THREE.Matrix4().makeTranslation( x*baseSize-offset, y*baseSize-offset, z*baseSize-offset ) );
+      THREE.GeometryUtils.merge(geometry,cubeGeometry);
     }
   }
+
+   var material = new THREE.MeshLambertMaterial( {color: 0x0088ff} ); 
+      var material2 = new THREE.MeshLambertMaterial( {color: 0xffffff,wireframe:true} ); 
+      var cube = THREE.SceneUtils.createMultiMaterialObject( geometry, [material,material2]);
+    bla.add(cube);
+
 }
 
-function VoxelMesh(grid, mesher)
+function VoxelPolygoniser(grid, mesher)
 {
   var mesher = mesher || stupidMesher;
   THREE.Object3D.call( this );
@@ -52,7 +88,7 @@ function VoxelMesh(grid, mesher)
   mesher(grid,this);
 }
 
-VoxelMesh.prototype = Object.create( THREE.Object3D.prototype );
+VoxelPolygoniser.prototype = Object.create( THREE.Object3D.prototype );
 
 
 function VoxelGrid(divisions, generator)
@@ -70,7 +106,7 @@ function VoxelGrid(divisions, generator)
   for(var i=0; i<gridSize; i++)
   {
     //console.log("x",x,"y",y,"z",z)
-    var filled = generator(x,y,z);
+    var filled = generator(x,y,z, divisions);
     var index= x + divisions * (y + divisions * z);
     grid[index] = {filled:filled};
 
@@ -102,7 +138,7 @@ VoxelGrid.prototype.coordFromIndex = function(index)
     var y = Math.floor( (index/divisions) % divisions );
     var z = Math.floor( index/ (divisions * divisions) );
 
-    console.log("x",x,"y",y,"z",z)
+    //console.log("x",x,"y",y,"z",z)
     return [x,y,z]
 }
 

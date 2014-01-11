@@ -13,23 +13,57 @@
       </style>
   </head>
 <body>
-  <three-js postProcess>
+
+  <polymer-element name="voxel-viewer">
+    <template>
       <three-stats id="stats" show></three-stats>
-      <three-js-combinedCamera tracking x="100" y="100" z="200" orientation="top" cameraUp=[0,0,1] ></three-js-combinedCamera>
-      <three-js-orbitControls cameraUp=[0,0,1] > </three-js-orbitControls>
+      <three-js postProcess id="threejs">
+        <three-js-combinedCamera tracking x="100" y="100" z="200" orientation="top" cameraUp=[0,0,1] ></three-js-combinedCamera>
+        <three-js-orbitControls cameraUp=[0,0,1] > </three-js-orbitControls>
 
-      <three-js-scene name="caramba" active>
-        <three-js-object hierarchyRoot>
-        </three-js-object>
+        <three-js-scene name="caramba" active>
+          <three-js-object hierarchyRoot>
+          </three-js-object>
 
-        <three-js-object helpersRoot>
-          <three-axis-helper > </three-axis-helper>
-          <three-js-light x="50" y="30" z="200"></three-js-light>
-          <three-js-light kind="spot" x="-150" y="350" rx="90" shadow></three-js-light>
-        </three-js-object>
-      </three-js-scene>
-   </three-js>
+          <three-js-object helpersRoot>
+            <three-axis-helper > </three-axis-helper>
+            <three-js-light x="50" y="30" z="200"></three-js-light>
+            <three-js-light kind="spot" x="-150" y="350" rx="90" shadow></three-js-light>
+          </three-js-object>
+        </three-js-scene>
+     </three-js>
+    </template>
+    <script>
+    Polymer("voxel-viewer",{
 
+    addToScene:function( mesh )
+    {
+       this.$.threejs.addToScene(mesh);
+    }
+
+    });
+    </script>
+  </polymer-element>
+
+  
+  <!--<voxel-viewer> </voxel-viewer>-->
+
+  <three-js postProcess id="threejs">
+        <three-js-combinedCamera tracking x="100" y="100" z="200" orientation="top" cameraUp=[0,0,1] ></three-js-combinedCamera>
+        <three-js-orbitControls cameraUp=[0,0,1] > </three-js-orbitControls>
+
+        <three-js-scene name="caramba" active>
+          <three-js-object hierarchyRoot>
+          </three-js-object>
+
+          <three-js-object helpersRoot>
+            <three-axis-helper > </three-axis-helper>
+            <three-js-light x="50" y="30" z="200"></three-js-light>
+            <three-js-light kind="spot" x="-150" y="350" rx="90" shadow></three-js-light>
+          </three-js-object>
+        </three-js-scene>
+     </three-js>
+  
   <script>
     window.addEventListener('WebComponentsReady', function() {
 
@@ -44,7 +78,6 @@
       script.src = currentUrl+"/src/voxel.js";
       document.getElementsByTagName('head')[0].appendChild(script);
 
-  
 	    var threeViewer = document.querySelector('three-js');
 
       setTimeout(function() {
@@ -75,10 +108,13 @@
         //loader.load( './demo-data/femur.stl' );
   
      
-        var testRandVox = new VoxelGrid(6);
-        var mesh = new VoxelMesh(testRandVox);
-        
-        threeViewer.addToScene( mesh );
+        var testRandVox = new VoxelGrid(5);
+        //var randMesh = new VoxelMesh(testRandVox);
+        //threeViewer.addToScene( randMesh );
+
+        var testSphereVox = new VoxelGrid(16,sphereGenerator);
+        var sphereMesh = new VoxelPolygoniser(testSphereVox);
+        threeViewer.addToScene( sphereMesh );
 
         //threeViewer.addToScene( testCubeVox );
         //testCubeVox.position.x = 5;
@@ -98,7 +134,7 @@
       //remove cube only
       //threeViewer.removeFromScene(cube);
 
-      //THREE.GeometryUtils.merge(geometry, otherGeometry);
+      
 
     });
   </script>  
