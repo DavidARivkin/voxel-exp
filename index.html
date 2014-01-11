@@ -113,10 +113,12 @@
         //threeViewer.addToScene( randMesh );
 
         var voxGrid = new VoxelGrid(16);
-        s = new Sphere(voxGrid, 8, new THREE.Vector3(8,8,8));
+        s = new Sphere(voxGrid, 8, new THREE.Vector3(10,10,10));
 
         var cSize = 8;
         c = new Cube(voxGrid, cSize,cSize,cSize, new THREE.Vector3(4,8,5));
+        
+        c.subtract(s);
 
         var sphereMesh = new VoxelPolygoniser(voxGrid);
         threeViewer.addToScene( sphereMesh );

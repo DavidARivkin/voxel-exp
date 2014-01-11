@@ -87,8 +87,53 @@ function stupidMesher(grid, bla, baseSize)
 
 //meshes
 
+function VoxelMesh(grid)
+{
+  this.grid = grid;
+}
+
+VoxelMesh.prototype.subtract = function( other )
+{
+
+  for(var i=0;i<other.cellIndices.length;i++)
+  {
+    var index = other.cellIndices[i];
+    if(this.cellIndices.indexOf(index) > -1)
+    {
+      var cell = other.grid.getFromIndex(index);
+      if(cell) cell.filled = 0;
+      console.log("index",index)
+    }
+    
+  }
+
+  /*
+  var grid = this.grid;
+  var divisions = this.divisions;
+  var gridSize = Math.pow(divisions,3);
+  var lineSize = divisions;
+
+  for(var i=0; i<gridSize; i++)
+  {
+    var curAtCoord = grid[i];
+    var otherAtCoord = other.grid[i];
+
+    if(curAtCoord.filled == 1 && otherAtCoord.filled  ==1 )
+    {
+      this.grid[i].filled= 0;
+      this.remove( curAtCoord.mesh )
+      this.grid[i].mesh = null;
+    }
+  }
+  console.log("result grid",grid)*/
+}
+
+
 function Cube(grid, w,h,d, center)
 {
+  VoxelMesh.call( this, grid );
+  this.cellIndices = [];
+
   var center = center || new THREE.Vector3();
 
   for(var k=-w/2; k<w/2; ++k)
@@ -100,17 +145,21 @@ function Cube(grid, w,h,d, center)
     var z= center.z - i;
 
     var cell = grid.getAt(x,y,z);
-    if(cell) cell.filled = 1;
-
+    if(cell){ cell.filled = 1; this.cellIndices.push( grid.indexFromCoords(x,y,z) ); }
   }
 }
+Cube.prototype = Object.create( VoxelMesh.prototype );
+
 
 function Sphere(grid, radius, center)
 {
+  VoxelMesh.call( this, grid );
   var center = center || new THREE.Vector3();
   //spherical implicit surface  x2+y2+z2=1
   var dim = radius;
   var n = 0;
+
+  this.cellIndices = [];//hack!
 
   for(var k=-radius/2; k<radius/2; ++k)
   for(var j=-radius/2; j<radius/2; ++j)
@@ -123,15 +172,17 @@ function Sphere(grid, radius, center)
     var cell = grid.getAt(x,y,z);
     var filled = bli(k,j,i);
 
-    if(cell) cell.filled = filled;
+    if(cell){ cell.filled = filled; this.cellIndices.push( grid.indexFromCoords(x,y,z) ); }
   }
 
   function bli(x,y,z)
   {
     return x*x+y*y+z*z <= dim/2*dim/2 ? 1 : 0;
   }
-  //
 }
+Sphere.prototype = Object.create( VoxelMesh.prototype );
+
+
 
 //polygoniser
 
@@ -185,6 +236,11 @@ VoxelGrid.prototype.getFromIndex = function(index)
     return this.grid[index];
 }
 
+VoxelGrid.prototype.indexFromCoords = function(x,y,z)
+{
+    return (x + this.divisions * (y + this.divisions * z));
+}
+
 VoxelGrid.prototype.coordFromIndex = function(index)
 {
     var divisions = this.divisions;
@@ -195,33 +251,6 @@ VoxelGrid.prototype.coordFromIndex = function(index)
 
     //console.log("x",x,"y",y,"z",z)
     return [x,y,z]
-}
-
-VoxelGrid.prototype.subtract = function( other )
-{
-  var grid = this.grid;
-  var divisions = this.divisions;
-  var gridSize = Math.pow(divisions,3);
-  var lineSize = divisions;
-
-  for(var i=0; i<gridSize; i++)
-  {
-    var curAtCoord = grid[i];
-    var otherAtCoord = other.grid[i];
-
-    if(curAtCoord.filled == 1 && otherAtCoord.filled  ==1 )
-    {
-      this.grid[i].filled= 0;
-      this.remove( curAtCoord.mesh )
-      this.grid[i].mesh = null;
-    }
-  }
-  console.log("result grid",grid)
-}
-
-VoxelGrid.prototype.translate = function( x )
-{
-
 }
 
 
