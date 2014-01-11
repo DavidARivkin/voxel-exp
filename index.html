@@ -108,13 +108,20 @@
         //loader.load( './demo-data/femur.stl' );
   
      
-        var testRandVox = new VoxelGrid(5);
+        //var testRandVox = new VoxelGrid(5);
         //var randMesh = new VoxelMesh(testRandVox);
         //threeViewer.addToScene( randMesh );
 
-        var testSphereVox = new VoxelGrid(16,sphereGenerator);
-        var sphereMesh = new VoxelPolygoniser(testSphereVox);
+        var voxGrid = new VoxelGrid(16);
+        s = new Sphere(voxGrid, 8, new THREE.Vector3(8,8,8));
+
+        var cSize = 8;
+        c = new Cube(voxGrid, cSize,cSize,cSize, new THREE.Vector3(4,8,5));
+
+        var sphereMesh = new VoxelPolygoniser(voxGrid);
         threeViewer.addToScene( sphereMesh );
+
+        //console.log("fdsfs",voxGrid, voxGrid.getAt(4,4,4))
 
         //threeViewer.addToScene( testCubeVox );
         //testCubeVox.position.x = 5;

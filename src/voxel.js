@@ -1,7 +1,11 @@
 
 //generators
+function emptyGenerator(x,y,z, res)
+{
+  return false;
+}
 
-function cubeGenerator(x,y,z, size)
+function cubeGenerator(x,y,z, res)
 {
   return true;
 }
@@ -26,6 +30,7 @@ function randomGenerator(x,y,z)
 {
   return Math.round(Math.random())
 }
+
 
 //meshers
 function stupidMesher(grid, bla, baseSize)
@@ -80,6 +85,56 @@ function stupidMesher(grid, bla, baseSize)
 
 }
 
+//meshes
+
+function Cube(grid, w,h,d, center)
+{
+  var center = center || new THREE.Vector3();
+
+  for(var k=-w/2; k<w/2; ++k)
+  for(var j=-h/2; j<h/2; ++j)
+  for(var i=-d/2; i<d/2; ++i){
+
+    var x= center.x - k;
+    var y= center.x - j;
+    var z= center.z - i;
+
+    var cell = grid.getAt(x,y,z);
+    if(cell) cell.filled = 1;
+
+  }
+}
+
+function Sphere(grid, radius, center)
+{
+  var center = center || new THREE.Vector3();
+  //spherical implicit surface  x2+y2+z2=1
+  var dim = radius;
+  var n = 0;
+
+  for(var k=-radius/2; k<radius/2; ++k)
+  for(var j=-radius/2; j<radius/2; ++j)
+  for(var i=-radius/2; i<radius/2; ++i, ++n) {
+    //v[n] = f(i,j,k);
+    var x= center.x - k;
+    var y= center.x - j;
+    var z= center.z - i;
+
+    var cell = grid.getAt(x,y,z);
+    var filled = bli(k,j,i);
+
+    if(cell) cell.filled = filled;
+  }
+
+  function bli(x,y,z)
+  {
+    return x*x+y*y+z*z <= dim/2*dim/2 ? 1 : 0;
+  }
+  //
+}
+
+//polygoniser
+
 function VoxelPolygoniser(grid, mesher)
 {
   var mesher = mesher || stupidMesher;
@@ -90,11 +145,11 @@ function VoxelPolygoniser(grid, mesher)
 
 VoxelPolygoniser.prototype = Object.create( THREE.Object3D.prototype );
 
-
+//main grid
 function VoxelGrid(divisions, generator)
 {
   var divisions = this.divisions = divisions || 3;
-  var generator = this.generator = generator || randomGenerator;
+  var generator = this.generator = generator || emptyGenerator;
 
   var gridSize = Math.pow(divisions,3);
   this.length = gridSize;
@@ -122,7 +177,7 @@ function VoxelGrid(divisions, generator)
 VoxelGrid.prototype.getAt = function(x,y,z)
 {
     var index= x + this.divisions * (y + this.divisions * z);
-    this.grid[index];
+    return this.grid[index];
 }
 
 VoxelGrid.prototype.getFromIndex = function(index)
