@@ -112,23 +112,25 @@
         //var randMesh = new VoxelMesh(testRandVox);
         //threeViewer.addToScene( randMesh );
 
-        var voxGrid = new VoxelGrid(16);
+        var voxGrid = new VoxelGrid(18);
+
         s = new Sphere(voxGrid, 8, new THREE.Vector3(10,10,10));
-
-        var cSize = 8;
-        c = new Cube(voxGrid, cSize,cSize,cSize, new THREE.Vector3(4,8,5));
+        var cSize = 5;
+        c = new Cube(voxGrid, cSize,cSize,cSize, new THREE.Vector3(5,8,8));
         
-        c.subtract(s);
+        s.subtract(c);
 
-        var sphereMesh = new VoxelPolygoniser(voxGrid);
-        threeViewer.addToScene( sphereMesh );
+        //voxGrid.remove(c)
 
-        //console.log("fdsfs",voxGrid, voxGrid.getAt(4,4,4))
+        var gridMesh = new VoxelPolygoniser(voxGrid,null,5);
+        threeViewer.addToScene( gridMesh );
 
-        //threeViewer.addToScene( testCubeVox );
-        //testCubeVox.position.x = 5;
+        /*
+        var oCoords = {x:0,y:5,z:7}
+        var index = voxGrid.indexFromCoords(oCoords.x,oCoords.y,oCoords.z);
+        var coords = voxGrid.coordFromIndex(index);
 
-        /*testRandVox.subtract( testCubeVox ); */
+        console.log("coords",oCoords, "index",index, "coords",coords)*/
 
       },500);
 

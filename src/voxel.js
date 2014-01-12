@@ -18,7 +18,7 @@ function sphereGenerator(x,y,z, res)
   var y = dim/2-y;
   var z = dim/2-z;
 
-  return x*x+y*y+z*z <= dim/2*dim/2 ? 1 : 0;
+  return x*x+y*y+z*z <= dim/2*dim/2 ? true : false;
 }
 
 function someImplicit(x,y,z, res)
@@ -39,7 +39,7 @@ function stupidMesher(grid, bla, baseSize)
   var gridSize = grid.length;
   var divisions = Math.pow(gridSize, 1/3);
 
-  var geometry = new THREE.CubeGeometry( 1, 1, 1 ); 
+  var geometry = new THREE.Geometry(); 
 
   for(var i=0; i<gridSize; i++)
   {
@@ -52,7 +52,7 @@ function stupidMesher(grid, bla, baseSize)
     var filled = voxData.filled;
     //console.log("x,y,z",x,y,z,"filled",voxData)
 
-    if(filled)
+    if(filled )
     {
 
       /*
@@ -79,9 +79,22 @@ function stupidMesher(grid, bla, baseSize)
   }
 
    var material = new THREE.MeshLambertMaterial( {color: 0x0088ff} ); 
-      var material2 = new THREE.MeshLambertMaterial( {color: 0xffffff,wireframe:true} ); 
-      var cube = THREE.SceneUtils.createMultiMaterialObject( geometry, [material,material2]);
-    bla.add(cube);
+   var material2 = new THREE.MeshLambertMaterial( {color: 0xffffff,wireframe:true} ); 
+   var cube = THREE.SceneUtils.createMultiMaterialObject( geometry, [material,material2]);
+   bla.add(cube);
+
+  //add bounding box
+
+  
+  geometry.computeCentroids();
+  geometry.computeBoundingSphere();
+  geometry.computeBoundingBox();
+  console.log("geom",geometry)
+	/*var material = new THREE.MeshLambertMaterial( {opacity:1,wireframe:true,color: 0xFF0000} ); 
+	var bbox = new THREE.Mesh(geometry, material);*/
+  var bbox = new THREE.BoundingBoxHelper(geometry,0xFF0000)
+  bla.add(bbox);
+  bbox.scale.set(divisions*baseSize,divisions*baseSize,divisions*baseSize)
 
 }
 
@@ -100,9 +113,18 @@ VoxelMesh.prototype.subtract = function( other )
     var index = other.cellIndices[i];
     if(this.cellIndices.indexOf(index) > -1)
     {
+
       var cell = other.grid.getFromIndex(index);
-      if(cell) cell.filled = 0;
-      console.log("index",index)
+
+      if(cell)
+      {
+        if(cell.meshes[this.uuid] && cell.meshes[other.uuid])
+        {
+          cell.filled = true;
+          console.log("index",index)
+        }        
+      }
+      
     }
     
   }
@@ -135,6 +157,7 @@ function Cube(grid, w,h,d, center)
   this.cellIndices = [];
 
   var center = center || new THREE.Vector3();
+  console.log("bl",w,h,d)
 
   for(var k=-w/2; k<w/2; ++k)
   for(var j=-h/2; j<h/2; ++j)
@@ -144,8 +167,14 @@ function Cube(grid, w,h,d, center)
     var y= center.x - j;
     var z= center.z - i;
 
+    console.log("lkm",x,y,z)
     var cell = grid.getAt(x,y,z);
-    if(cell){ cell.filled = 1; this.cellIndices.push( grid.indexFromCoords(x,y,z) ); }
+    if(cell){ 
+      cell.filled = true; 
+      //console.log("filling",x,y,z)
+      this.cellIndices.push( grid.indexFromCoords(x,y,z) ); 
+      cell.meshes[this.uuid] = this;
+      }
   }
 }
 Cube.prototype = Object.create( VoxelMesh.prototype );
@@ -165,14 +194,18 @@ function Sphere(grid, radius, center)
   for(var j=-radius/2; j<radius/2; ++j)
   for(var i=-radius/2; i<radius/2; ++i, ++n) {
     //v[n] = f(i,j,k);
-    var x= center.x - k;
+    var x= center.x - i;
     var y= center.x - j;
-    var z= center.z - i;
+    var z= center.z - k;
 
     var cell = grid.getAt(x,y,z);
-    var filled = bli(k,j,i);
+    var filled = bli(i,j,k);
 
-    if(cell){ cell.filled = filled; this.cellIndices.push( grid.indexFromCoords(x,y,z) ); }
+    if(cell){ 
+      cell.filled = filled;
+      cell.meshes[this.uuid] = this;
+      this.cellIndices.push( grid.indexFromCoords(x,y,z) ); 
+    } 
   }
 
   function bli(x,y,z)
@@ -186,12 +219,15 @@ Sphere.prototype = Object.create( VoxelMesh.prototype );
 
 //polygoniser
 
-function VoxelPolygoniser(grid, mesher)
+function VoxelPolygoniser(grid, mesher, voxSize)
 {
   var mesher = mesher || stupidMesher;
   THREE.Object3D.call( this );
   
-  mesher(grid,this);
+  mesher(grid,this,voxSize);
+
+  //add bounding box for helping
+
 }
 
 VoxelPolygoniser.prototype = Object.create( THREE.Object3D.prototype );
@@ -214,7 +250,7 @@ function VoxelGrid(divisions, generator)
     //console.log("x",x,"y",y,"z",z)
     var filled = generator(x,y,z, divisions);
     var index= x + divisions * (y + divisions * z);
-    grid[index] = {filled:filled};
+    grid[index] = {filled:filled,meshes:{}};
 
     x++;
     if(x==lineSize){x = 0; y++;}
@@ -225,9 +261,31 @@ function VoxelGrid(divisions, generator)
   this.grid = grid;
 }
 
+VoxelGrid.prototype.remove = function(mesh)
+{
+  var deleted = 0
+  var total = 0;
+  for(var i=0; i<this.length; i++)
+  { 
+     var cell = this.grid[i];
+
+     if(cell.meshes[mesh.uuid])
+     {
+        delete cell.meshes[mesh.uuid];
+      cell.filled = false;
+      deleted++;
+    }  
+    total++;   
+      
+  }
+  console.log("deleted",deleted,"outof",total)
+}
+
 VoxelGrid.prototype.getAt = function(x,y,z)
 {
+    
     var index= x + this.divisions * (y + this.divisions * z);
+    var index= Math.floor(index);
     return this.grid[index];
 }
 
@@ -253,6 +311,36 @@ VoxelGrid.prototype.coordFromIndex = function(index)
     return [x,y,z]
 }
 
+
+/**
+ * @author WestLangley / http://github.com/WestLangley
+ */
+
+// a helper to show the world-axis-aligned bounding box for an object
+
+THREE.BoundingBoxHelper = function ( object, hex ) {
+
+	var color = hex || 0x888888;
+
+	this.object = object;
+
+	this.box = new THREE.Box3();
+
+	THREE.Mesh.call( this, new THREE.CubeGeometry( 1, 1, 1 ), new THREE.MeshBasicMaterial( { color: color, wireframe: true } ) );
+
+};
+
+THREE.BoundingBoxHelper.prototype = Object.create( THREE.Mesh.prototype );
+
+THREE.BoundingBoxHelper.prototype.update = function () {
+
+	this.box.setFromObject( this.object );
+
+	this.box.size( this.scale );
+
+	this.box.center( this.position );
+
+};
 
 /*
 var geometry = new THREE.CubeGeometry( 50, 50, 50 ); 
