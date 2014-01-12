@@ -75,8 +75,13 @@
       document.getElementsByTagName('head')[0].appendChild(script);
 
       var script = document.createElement('script');
+      script.src = currentUrl+"/src/MarchingCubesData.js";
+      document.getElementsByTagName('head')[0].appendChild(script);
+
+      var script = document.createElement('script');
       script.src = currentUrl+"/src/voxel.js";
       document.getElementsByTagName('head')[0].appendChild(script);
+
 
 	    var threeViewer = document.querySelector('three-js');
 
@@ -112,9 +117,9 @@
         //var randMesh = new VoxelMesh(testRandVox);
         //threeViewer.addToScene( randMesh );
 
-        var voxGrid = new VoxelGrid(18);
+        var voxGrid = new VoxelGrid(24);
 
-        s = new Sphere(voxGrid, 8, new THREE.Vector3(10,10,10));
+        s = new Sphere(voxGrid, 18, new THREE.Vector3(10,10,10));
         var cSize = 5;
         c = new Cube(voxGrid, cSize,cSize,cSize, new THREE.Vector3(5,8,8));
         
@@ -122,7 +127,7 @@
 
         //voxGrid.remove(c)
 
-        var gridMesh = new VoxelPolygoniser(voxGrid,null,5);
+        var gridMesh = new VoxelPolygoniser(voxGrid,marchingCubesMesher,2);
         threeViewer.addToScene( gridMesh );
 
         /*
